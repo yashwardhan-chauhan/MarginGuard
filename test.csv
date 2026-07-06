@@ -1,0 +1,4 @@
+sku,supplier_cost,shipping_cost,sale_price,target_margin,product_category,hs_code,source_country
+ELEC-MOCK-001,40.00,5.00,80.00,30.0,Electronics,8517.62,VN
+APPA-MOCK-002,15.00,2.00,35.00,40.0,Apparel,6102.10,CN
+INVALID-MOCK-003,-5.00,2.00,35.00,40.0,Apparel,6102.10,CN
