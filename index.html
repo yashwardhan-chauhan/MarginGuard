@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarginGuard Dashboard System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --sidebar-width: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(99,102,241,.18), transparent 35%),
+                radial-gradient(circle at 80% 10%, rgba(236,72,153,.12), transparent 30%),
+                radial-gradient(circle at 70% 80%, rgba(6,182,212,.12), transparent 35%),
+                #0b1120;
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        body:before {
+            content: "";
+            position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Layout Framework */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(18px);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .main-workspace {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100vh;
+            position: relative;
+            z-index: 5;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, .04);
+            backdrop-filter: blur(18px);
+            padding: 2rem;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6, #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Interactive Core Metric Cards */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 2rem;
+        }
+
+        .metric {
+            padding: 20px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(99,102,241,.25), rgba(15,23,42,.65));
+            border: 1px solid rgba(255, 255, 255, .08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .metric h3 {
+            font-size: .9rem;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .metric .value {
+            font: 700 2.1rem 'Outfit', sans-serif;
+        }
+
+        /* UI Panel Components */
+        .controls-card, .table-card, .chart-box {
+            background: rgba(30, 41, 59, .62) !important;
+            backdrop-filter: blur(18px);
+            border-radius: 22px !important;
+            border: 1px solid rgba(255, 255, 255, .08) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .35) !important;
+            margin-bottom: 2rem;
+        }
+
+        .controls-card {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-header, .chart-title-block {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .table-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, .06) !important;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: rgba(99, 102, 241, .08) !important;
+        }
+
+        tr.row-flagged td {
+            background-color: rgba(239, 68, 68, 0.07) !important;
+        }
+
+        tr.row-flagged td:first-child {
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Buttons & Controls */
+        button, .file-upload-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 14px !important;
+            border: none;
+            cursor: pointer;
+            transition: .3s !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover, .file-upload-label:hover {
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0 12px 30px rgba(99, 102, 241, .3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4) !important;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .file-upload-label {
+            background-color: #475569;
+            color: #fff;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* Dynamic Tooltips */
+        .info-wrapper { position: relative; display: inline-flex; }
+        .info-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-secondary); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: help; }
+        .tooltip-box { visibility: hidden; opacity: 0; width: 260px; background: #1e293b; border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; position: absolute; z-index: 100; top: 130%; left: 50%; transform: translateX(-50%); transition: 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-size: 0.8rem; }
+        .info-wrapper:hover .tooltip-box { visibility: visible; opacity: 1; }
+
+        /* Sliders & Simulator */
+        .simulator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 1.5rem; }
+        .slider-card { background: rgba(15, 23, 42, 0.3); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 14px; }
+        .slider-label-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem; }
+        .slider-card input[type="range"] { width: 100%; accent-color: var(--primary); background: #334155; height: 6px; border-radius: 3px; cursor: pointer; }
+
+        /* Badges */
+        .badge { display: inline-flex; padding: 0.25rem 0.6rem; border-radius: 100px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-success { background-color: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-danger { background-color: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Graphs & Bars */
+        .chart-box { padding: 1.5rem; }
+        .bar-chart-row { display: flex; align-items: center; margin-bottom: 0.8rem; gap: 1rem; }
+        .bar-label { width: 140px; font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        .bar-track { flex-grow: 1; background: rgba(0,0,0,0.2); height: 16px; border-radius: 6px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+        .bar-fill.loss { background: linear-gradient(90deg, #f87171, var(--danger)); }
+        .bar-fill.gain { background: linear-gradient(90deg, #34d399, var(--success)); }
+
+        .alert { display: none; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--danger); background: var(--danger-bg); color: #fca5a5; font-size: 0.9rem; }
+        .dashboard-screen { display: none; }
+        .dashboard-screen.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- Tabbed Control Navigation Sidebar -->
+    <div class="sidebar">
+        <div>
+            <h2 style="font-family:'Outfit'; font-size:1.5rem; margin-bottom:0.25rem;">MarginGuard</h2>
+            <p style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">Optimization Suite</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchDashboardTab('screen-data', this)">📦 Ledger Workspace</li>
+            <li class="nav-item" onclick="switchDashboardTab('screen-charts', this)">📊 Variance Graphs</li>
+            <li class="nav-item" onclick="switchDashboardTab('screen-predict', this)">🔮 Forward Forecast</li>
+            <li class="nav-item" onclick="switchDashboardTab('screen-audit', this)">🛡️ Audit Directives</li>
+        </ul>
+    </div>
+
+    <!-- Main Workspace Canvas -->
+    <div class="main-workspace">
+        <div class="container-fluid">
+            
+            <header>
+                <h1>MarginGuard</h1>
+                <p class="subtitle">Multi-agent margin erosion detector & pricing optimizer for import sellers</p>
+            </header>
+
+            <!-- Global Interactive Real-Time Summary Metrics -->
+            <div class="metric-grid">
+                <div class="metric" style="border-left: 4px solid var(--danger);">
+                    <h3>Revenue at Risk</h3>
+                    <div class="value" id="global-kpi-leak" style="color: var(--danger)">$0.00</div>
+                </div>
+                <div class="metric" style="border-left: 4px solid #6366f1;">
+                    <h3>Products</h3>
+                    <div class="value" id="global-kpi-count">0</div>
+                </div>
+                <div class="metric" style="border-left: 4px solid #06b6d4;">
+                    <h3>Avg Margin</h3>
+                    <div class="value" id="global-kpi-avg-margin" style="color: #06b6d4">0.0%</div>
+                </div>
+                <div class="metric" style="border-left: 4px solid var(--success);">
+                    <h3>Potential Recovery</h3>
+                    <div class="value" id="global-kpi-recovery" style="color: var(--success)">+$0.00</div>
+                </div>
+            </div>
+
+            <div id="errorAlert" class="alert"></div>
+
+            <!-- TAB 1: LEDGER SCREENER -->
+            <div id="screen-data" class="dashboard-screen active">
+                <div class="controls-card">
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="triggerLedgerAnalysis()">Run Analysis</button>
+                        <button class="btn-secondary" onclick="resetToBuiltInSample()">Reset to Sample Data</button>
+                    </div>
+                    <div class="btn-group">
+                        <label for="csvFileInput" class="file-upload-label">Upload CSV</label>
+                        <div class="info-wrapper" style="margin-left:0.5rem; align-items:center;">
+                            <div class="info-icon">i</div>
+                            <div class="tooltip-box">
+                                <strong style="color:var(--primary)">Target Column Mapping Requirements:</strong>
+                                <p style="margin-top:0.4rem; color:var(--text-secondary); line-height:1.4;">sku, product_category, source_country, supplier_cost, shipping_cost, current_sale_price, target_margin_pct</p>
+                            </div>
+                        </div>
+                        <input type="file" id="csvFileInput" accept=".csv" onchange="processLocalCsvUpload(event)">
+                        <span id="dataStatus" class="table-meta" style="margin-left:0.75rem;">Data Source: Built-in Sample</span>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Product & Margin Ledger</span>
+                        <span id="rowCount" class="table-meta">0 Products Loaded</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Category</th>
+                                    <th>Country</th>
+                                    <th>Cost</th>
+                                    <th>Shipping</th>
+                                    <th>Sale Price</th>
+                                    <th>Target %</th>
+                                    <th>Landed Cost</th>
+                                    <th>Est. Margin %</th>
+                                    <th>Status</th>
+                                    <th>Price / Sourcing Fix Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: VARIANCE GRAPHS -->
+            <div id="screen-charts" class="dashboard-screen">
+                <div class="chart-box">
+                    <div class="chart-title-block">
+                        <h3 class="table-title">Margin Target Deviation Index</h3>
+                        <p class="table-meta">Deficit gaps vs optimized safety lines calculated against current simulation variables</p>
+                    </div>
+                    <div id="graphBarsContainer" style="padding: 1.5rem;"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: PREDICTIVE SIMULATION DESK -->
+            <div id="screen-predict" class="dashboard-screen">
+                <div class="controls-card" style="display:block; padding:0;">
+                    <div class="chart-title-block">
+                        <h3 class="table-title">Global Freight & Trade Disruption Simulator</h3>
+                        <p class="table-meta">Move adjustments below to view instant cross-lane impact shifts over entire inventory portfolios</p>
+                    </div>
+                    <div class="simulator-grid">
+                        <div class="slider-card">
+                            <div class="slider-label-row">
+                                <span>Global Tariff Modifier Baseline</span>
+                                <span id="lbl-slider-tariff" style="color:var(--primary); font-weight:700;">+0%</span>
+                            </div>
+                            <input type="range" id="slider-tariff" min="-10" max="30" value="0" oninput="executeDynamicRecalculationEngine()">
+                        </div>
+                        <div class="slider-card">
+                            <div class="slider-label-row">
+                                <span>Inbound Freight Surcharge Shift</span>
+                                <span id="lbl-slider-shipping" style="color:var(--primary); font-weight:700;">+0%</span>
+                            </div>
+                            <input type="range" id="slider-shipping" min="-30" max="60" value="0" oninput="executeDynamicRecalculationEngine()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Simulated Pro-Forma Dynamic Matrix</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Baseline Landed</th>
+                                    <th>Simulated Landed Cost</th>
+                                    <th>Simulated Margin %</th>
+                                    <th>Simulated Target Variance</th>
+                                    <th>Forecast Risk Outcome</th>
+                                </tr>
+                            </thead>
+                            <tbody id="simulationTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: AUDIT DIRECTIVES -->
+            <div id="screen-audit" class="dashboard-screen">
+                <div class="table-card" style="padding:1.5rem;" id="auditDirectivesContainer"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // High-Precision Core Inventory Array
+        const sampleInventoryData = [
+            { sku: "ELEC-SMART-001", product_category: "Electronics", source_country: "CN", supplier_cost: 42.00, shipping_cost: 6.50, current_sale_price: 89.00, target_margin_pct: 40 },
+            { sku: "APPA-JACKET-002", product_category: "Apparel", source_country: "CN", supplier_cost: 18.50, shipping_cost: 3.00, current_sale_price: 39.99, target_margin_pct: 45 },
+            { sku: "FURN-DESK-003", product_category: "Furniture", source_country: "VN", supplier_cost: 75.00, shipping_cost: 28.00, current_sale_price: 179.00, target_margin_pct: 40 },
+            { sku: "TOYS-COLLECT-004", product_category: "Toys", source_country: "VN", supplier_cost: 10.50, shipping_cost: 2.50, current_sale_price: 24.99, target_margin_pct: 35 },
+            { sku: "HOME-LAMP-005", product_category: "Home Goods", source_country: "IN", supplier_cost: 14.00, shipping_cost: 4.50, current_sale_price: 29.00, target_margin_pct: 35 },
+            { sku: "ELEC-EARBUD-006", product_category: "Electronics", source_country: "MX", supplier_cost: 31.00, shipping_cost: 5.00, current_sale_price: 79.99, target_margin_pct: 50 }
+        ];
+
+        let masterInventoryRegistry = [...sampleInventoryData];
+        let runAnalysisExecuted = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            executeDynamicRecalculationEngine();
+        });
+
+        function switchDashboardTab(tabId, element) {
+            document.querySelectorAll('.dashboard-screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Central Analytics & Mathematical Engine Execution
+        function calculateProductFinancials(item, tariffModifier = 0, freightModifier = 0) {
+            const cost = parseFloat(item.supplier_cost) || 0;
+            const shipping = parseFloat(item.shipping_cost) || 0;
+            const retail = parseFloat(item.current_sale_price) || 0;
+            const targetMargin = parseFloat(item.target_margin_pct) || 0;
+
+            let countryBaseTariff = 0;
+            if (item.source_country === 'CN') countryBaseTariff = 0.15;
+            else if (item.source_country === 'VN') countryBaseTariff = 0.06;
+            else if (item.source_country === 'IN') countryBaseTariff = 0.04;
+
+            const activeTariffRate = Math.max(0, countryBaseTariff + (tariffModifier / 100));
+            const activeShippingCost = Math.max(0, shipping * (1 + (freightModifier / 100)));
+
+            const landedCost = cost + (cost * activeTariffRate) + activeShippingCost;
+            const absoluteProfit = retail - landedCost;
+            const actualMarginPct = retail > 0 ? (absoluteProfit / retail) * 100 : 0;
+            const marginVariance = actualMarginPct - targetMargin;
+            const isViolated = actualMarginPct < targetMargin;
+
+            let recommendedPrice = retail;
+            let sourcingPlaybook = "Supply chain loops stable within specified target threshold parameters.";
+
+            if (isViolated) {
+                recommendedPrice = landedCost / (1 - (targetMargin / 100));
+                if (item.source_country === 'CN') {
+                    sourcingPlaybook = `Shift manufacturing baseline to alternate lanes (e.g., MX or VN corridor) to suppress regional tariffs back to baseline standard tolerances.`;
+                } else {
+                    sourcingPlaybook = `Consolidate LCL sea-freight containers into single hub distribution lots to reduce item shipping variable by 12%.`;
+                }
+            }
+
+            return {
+                landedCost,
+                actualMarginPct,
+                marginVariance,
+                isViolated,
+                absoluteProfit,
+                recommendedPrice,
+                sourcingPlaybook,
+                recoveryValue: isViolated ? (recommendedPrice - retail) : 0
+            };
+        }
+
+        // Core Recalculation Engine — Syncs Tables, Sliders, and Metric Cards instantly
+        function executeDynamicRecalculationEngine() {
+            const tariffModifier = parseFloat(document.getElementById('slider-tariff').value) || 0;
+            const freightModifier = parseFloat(document.getElementById('slider-shipping').value) || 0;
+
+            document.getElementById('lbl-slider-tariff').textContent = `${tariffModifier >= 0 ? '+' : ''}${tariffModifier}%`;
+            document.getElementById('lbl-slider-shipping').textContent = `${freightModifier >= 0 ? '+' : ''}${freightModifier}%`;
+
+            let totalRevenueAtRisk = 0;
+            let combinedMarginSum = 0;
+            let totalRecoveryPotential = 0;
+
+            // 1. Refresh primary Ledger Workspace view markup
+            const ledgerBody = document.getElementById('tableBody');
+            ledgerBody.innerHTML = '';
+            document.getElementById('rowCount').textContent = `${masterInventoryRegistry.length} Products Loaded`;
+
+            masterInventoryRegistry.forEach(item => {
+                const metrics = calculateProductFinancials(item, tariffModifier, freightModifier);
+                
+                // Aggregate KPIs across current working dataset state
+                combinedMarginSum += metrics.actualMarginPct;
+                if (metrics.isViolated) {
+                    if (metrics.absoluteProfit < 0) totalRevenueAtRisk += Math.abs(metrics.absoluteProfit);
+                    totalRecoveryPotential += metrics.recoveryValue;
+                }
+
+                const tr = document.createElement('tr');
+                let landedStr = '-', marginStr = '-', badge = '<span class="badge" style="background:rgba(255,255,255,0.05);">Uncalculated</span>', recHtml = '-';
+
+                if (runAnalysisExecuted) {
+                    landedStr = `$${metrics.landedCost.toFixed(2)}`;
+                    marginStr = `${metrics.actualMarginPct.toFixed(1)}%`;
+                    if (metrics.isViolated) {
+                        tr.classList.add('row-flagged');
+                        badge = '<span class="badge badge-danger">Flagged</span>';
+                        recHtml = `
+                            <div style="display:flex; flex-direction:column; gap:0.2rem;">
+                                <span style="color:var(--danger); font-weight:600;">Increase price to $${metrics.recommendedPrice.toFixed(2)}</span>
+                                <span style="color:#93c5fd; font-size:0.8rem; font-style:italic;">${metrics.sourcingPlaybook}</span>
+                            </div>`;
+                    } else {
+                        badge = '<span class="badge badge-success">OK</span>';
+                        recHtml = '<span style="color:var(--success); font-weight:500;">✓ Margin Healthy</span>';
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td><strong>${item.sku}</strong></td>
+                    <td>${item.product_category}</td>
+                    <td><span class="badge" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:var(--text-primary)">${item.source_country}</span></td>
+                    <td>$${parseFloat(item.supplier_cost).toFixed(2)}</td>
+                    <td>$${parseFloat(item.shipping_cost).toFixed(2)}</td>
+                    <td>$${parseFloat(item.current_sale_price).toFixed(2)}</td>
+                    <td>${parseFloat(item.target_margin_pct).toFixed(0)}%</td>
+                    <td>${landedStr}</td>
+                    <td style="${runAnalysisExecuted && metrics.isViolated ? 'color:var(--danger); font-weight:700;' : ''}">${marginStr}</td>
+                    <td>${badge}</td>
+                    <td>${recHtml}</td>
+                `;
+                ledgerBody.appendChild(tr);
+            });
+
+            // 2. Refresh dynamic forward simulator matrix workspace inline
+            const simBody = document.getElementById('simulationTableBody');
+            simBody.innerHTML = '';
+            masterInventoryRegistry.forEach(item => {
+                const baseMetrics = calculateProductFinancials(item, 0, 0);
+                const simMetrics = calculateProductFinancials(item, tariffModifier, freightModifier);
+
+                const tr = document.createElement('tr');
+                if (simMetrics.isViolated) tr.classList.add('row-flagged');
+
+                tr.innerHTML = `
+                    <td><strong>${item.sku}</strong></td>
+                    <td>$${baseMetrics.landedCost.toFixed(2)}</td>
+                    <td>$${simMetrics.landedCost.toFixed(2)}</td>
+                    <td style="font-weight:600; color:${simMetrics.isViolated ? 'var(--danger)' : 'var(--success)'}">${simMetrics.actualMarginPct.toFixed(1)}%</td>
+                    <td style="font-weight:600; color:${simMetrics.marginVariance < 0 ? 'var(--danger)' : 'var(--success)'}">${simMetrics.marginVariance >= 0 ? '+' : ''}${simMetrics.marginVariance.toFixed(1)}%</td>
+                    <td>${simMetrics.isViolated ? '<span class="badge badge-danger">Erosion Risk</span>' : '<span class="badge badge-success">Safe</span>'}</td>
+                `;
+                simBody.appendChild(tr);
+            });
+
+            // 3. Render Variance Graphs Workspace
+            let graphHtml = '';
+            masterInventoryRegistry.forEach(item => {
+                const metrics = calculateProductFinancials(item, tariffModifier, freightModifier);
+                const varianceValue = metrics.marginVariance;
+                const fillWidth = Math.min(100, Math.max(6, Math.abs(varianceValue) * 2.5));
+                const themeClass = varianceValue < 0 ? 'loss' : 'gain';
+
+                graphHtml += `
+                    <div class="bar-chart-row">
+                        <div class="bar-label" title="${item.sku}"><strong>${item.sku}</strong></div>
+                        <div class="bar-track">
+                            <div class="bar-fill ${themeClass}" style="width: ${fillWidth}%"></div>
+                        </div>
+                        <div style="width:75px; text-align:right; font-weight:600; color:${varianceValue < 0 ? 'var(--danger)' : 'var(--success)'}">
+                            ${varianceValue >= 0 ? '+' : ''}${varianceValue.toFixed(1)}%
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('graphBarsContainer').innerHTML = graphHtml;
+
+            // 4. Generate Live Safety Audit Directive Panel logs
+            const auditPane = document.getElementById('auditDirectivesContainer');
+            let itemsWithViolations = 0;
+            let auditLogsHtml = `<h3 class="table-title" style="margin-bottom:1rem; color:#ff6b79;">Critical System Leak Intercepts</h3>`;
+
+            masterInventoryRegistry.forEach(item => {
+                const metrics = calculateProductFinancials(item, tariffModifier, freightModifier);
+                if (metrics.isViolated) {
+                    itemsWithViolations++;
+                    auditLogsHtml += `
+                        <div style="background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.15); border-radius:12px; padding:1.25rem; margin-bottom:1rem;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem; font-family:'Outfit';">
+                                <strong>System Identifier Loop: ${item.sku}</strong>
+                                <span style="color:var(--danger); font-weight:700;">Deficit Drop: ${metrics.marginVariance.toFixed(1)}% below target</span>
+                            </div>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">Target threshold compression calculated. Current landed operating space requires balancing action matrix.</p>
+                            <p style="font-size:0.85rem; color:var(--text-primary)"><strong>Resolution:</strong> ${metrics.sourcingPlaybook} Or baseline adjustments upwards via terminal floor rules.</p>
+                        </div>`;
+                }
+            });
+            if (itemsWithViolations === 0) {
+                auditLogsHtml += `<p style="color:var(--success); font-weight:600;">✓ Portfolio verification complete. High-health parameters observed across active supply lanes.</p>`;
+            }
+            auditPane.innerHTML = auditLogsHtml;
+
+            // 5. Instantly Commit Values to Front Core Metric Cards
+            const finalAverageMargin = masterInventoryRegistry.length > 0 ? (combinedMarginSum / masterInventoryRegistry.length) : 0;
+            document.getElementById('global-kpi-count').textContent = masterInventoryRegistry.length;
+            document.getElementById('global-kpi-avg-margin').textContent = `${finalAverageMargin.toFixed(1)}%`;
+            document.getElementById('global-kpi-leak').textContent = `$${totalRevenueAtRisk.toFixed(2)}`;
+            document.getElementById('global-kpi-recovery').textContent = `+$${totalRecoveryPotential.toFixed(2)}`;
+        }
+
+        function triggerLedgerAnalysis() {
+            runAnalysisExecuted = true;
+            executeDynamicRecalculationEngine();
+        }
+
+        function resetToBuiltInSample() {
+            masterInventoryRegistry = [...sampleInventoryData];
+            runAnalysisExecuted = false;
+            document.getElementById('dataStatus').textContent = 'Data Source: Built-in Sample';
+            document.getElementById('errorAlert').style.display = 'none';
+            executeDynamicRecalculationEngine();
+        }
+
+        function processLocalCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('errorAlert').style.display = 'none';
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const textLines = e.target.result.split(/\r?\n/);
+                if (textLines.length < 2) { return showUiError("Invalid processing queue. Empty dataset profile layout."); }
+
+                const headers = textLines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+                const verificationMatrix = ['sku', 'supplier_cost', 'shipping_cost', 'current_sale_price', 'target_margin_pct', 'product_category', 'source_country'];
+                const layoutGaps = verificationMatrix.filter(field => !headers.includes(field));
+
+                if (layoutGaps.length > 0) {
+                    return showUiError(`Header validation failure. Mandatory structural arrays missing: ${layoutGaps.join(', ')}`);
+                }
+
+                const importedBuffer = [];
+                for (let i = 1; i < textLines.length; i++) {
+                    if (!textLines[i].trim()) continue;
+                    const parameters = textLines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                    if (parameters.length < headers.length) continue;
+
+                    const datasetRow = {};
+                    headers.forEach((key, index) => { datasetRow[key] = parameters[index]; });
+
+                    importedBuffer.push({
+                        sku: datasetRow.sku,
+                        product_category: datasetRow.product_category,
+                        source_country: datasetRow.source_country.toUpperCase(),
+                        supplier_cost: parseFloat(datasetRow.supplier_cost) || 0,
+                        shipping_cost: parseFloat(datasetRow.shipping_cost) || 0,
+                        current_sale_price: parseFloat(datasetRow.current_sale_price) || 0,
+                        target_margin_pct: parseFloat(datasetRow.target_margin_pct) || 0
+                    });
+                }
+
+                if (importedBuffer.length === 0) { return showUiError("Zero data entries could be verified."); }
+
+                masterInventoryRegistry = importedBuffer;
+                runAnalysisExecuted = true;
+                document.getElementById('dataStatus').textContent = `Source: ${file.name}`;
+                executeDynamicRecalculationEngine();
+            };
+
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function showUiError(msg) {
+            const el = document.getElementById('errorAlert');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
