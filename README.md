@@ -1,4 +1,4 @@
-# MarginGuard
+# MarginGuard - Automatic Margin-Erosion Detector & Repricer for Import Sellers
 
 **A local multi-agent system that detects silent margin erosion for import and e-commerce sellers — and tells you exactly what price to set to fix it.**
 
