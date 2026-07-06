@@ -2,7 +2,7 @@
 
 **A local multi-agent system that detects silent margin erosion for import and e-commerce sellers — and tells you exactly what price to set to fix it.**
 
-MarginGuard Dashboard <img width="2526" height="1619" alt="dashboard-screenshot" src="https://github.com/user-attachments/assets/dcc95ff0-ea22-40e3-92fd-8baa9fe3ffa5" />
+MarginGuard Dashboard <img width="1259" height="824" alt="Screenshot 2026-07-07 at 1 51 17 AM" src="https://github.com/user-attachments/assets/5a22efb5-2720-4d78-b3aa-9b918fe90274" />
 *The local dashboard — sample dataset loaded, flagged rows highlighted in red with a recommended fix.*
 
 ---
@@ -28,15 +28,30 @@ You give it your product list + costs
 
 ---
 
+## New in This Update: Workspace Upgrades & Real-Time Engine
+
+The system has been updated from a static report viewer to a **High-Fidelity Premium Workspace Suite**. Key improvements include:
+
+*   **Interactive Core KPI Cards:** The master statistics grid (**Revenue at Risk, Products Loaded, Avg Margin Profile, Potential Recovery**) is now directly wired to the simulation calculation core. Metrics update *instantly* as variables change.
+*   **Global Freight & Trade Disruption Simulator:** Added interactive modifier sliders to test portfolio resistance against macro shocks. You can adjust global tariff baselines and inbound freight surcharges in real time.
+*   **Multi-Screen Navigation Canvas:** The single-page view has been partitioned into a high-performance sidebar layout separating distinct analytical operations:
+    *   **Ledger Workspace:** Core tabular system data, CSV uploads, and localized row-flagging.
+    *   **Variance Graphs:** Horizontal dynamic charts displaying localized portfolio target deviations.
+    *   **Forward Forecast:** Pro-forma simulated landed-cost forecasting matrices.
+    *   **Audit Directives:** System-isolated log sheets outlining localized supply lane mitigation instructions.
+*   **Premium Visual Identity:** Integrated a frosted-glass glassmorphism UI using radial accent gradients, fixed background alignment mesh filters, and unified micro-dot grid guides.
+
+---
+
 ## How It Works
 
-MarginGuard runs a **4-agent pipeline** behind a local dashboard. Each agent hands off structured data to the next — nothing here is an LLM guessing at numbers; the cost and margin math is deterministic Python arithmetic.
+MarginGuard runs a **4-agent pipeline** behind a local dashboard. Each agent hands off structured data to the next — nothing here is an LLM guessing at numbers; the cost and margin math is deterministic Python and JavaScript arithmetic.
 
-Architecture Diagram <img width="1149" height="1369" alt="architecture_diagram" src="https://github.com/user-attachments/assets/3629e786-20d2-4db1-9c15-1dc09098d2ed" />
+Architecture Diagram <img width="1149" height="1369" alt="ChatGPT Image Jul 7, 2026, 01_51_39 AM" src="https://github.com/user-attachments/assets/b95c9a09-4d61-4b19-9827-f16d2eeed7a1" />        
 
 ### Pipeline steps
 
-1. **HTML Dashboard** — served on `localhost`. You either use the built-in sample dataset or upload your own CSV, then click **Run Analysis**.
+1. **HTML Dashboard** — served on `localhost`. Use the built-in sample inventory registry or stream your own CSV, then click **Run Analysis**.
 2. **Orchestrator Agent (Root)** — reads the active product list and coordinates the rest of the pipeline.
 3. **Cost Monitor Agent** — for each product's category and source country, calls a local MCP tool to fetch current tariff %, FX rate, and freight rate.
 4. **MCP Cost Conditions Server** — exposes `get_cost_conditions(product_category, source_country)`, backed by a small, clearly-labeled **mock dataset** (no real trade API needed).
@@ -45,7 +60,7 @@ Architecture Diagram <img width="1149" height="1369" alt="architecture_diagram" 
    - `margin = (sale_price − landed_cost) / sale_price`
    - Flags any product that has fallen below its target margin.
 6. **Repricing Agent** — for every flagged product, computes the minimum sale price that restores the target margin, and checks whether sourcing from an alternate country would help more.
-7. **Dashboard renders the report** — flagged rows in red, with the exact recommended price fix or sourcing switch next to each one.
+7. **Dashboard renders the report** — updates the dynamic charts, populates the multi-view tabs, and syncs the live KPI metric blocks instantly.
 
 ---
 
@@ -65,25 +80,27 @@ Architecture Diagram <img width="1149" height="1369" alt="architecture_diagram" 
 
 Upload your own product list in CSV format with these headers:
 
-`sku,supplier_cost,shipping_cost,sale_price,target_margin,product_category,hs_code,source_country`
+`sku,supplier_cost,shipping_cost,current_sale_price,target_margin_pct,product_category,source_country`
 
 | Column | Description | Example |
 |---|---|---|
 | `sku` | Unique alphanumeric product code | `ELEC-SMART-001` |
 | `supplier_cost` | Cost per unit paid to the supplier | `50.00` |
 | `shipping_cost` | Baseline shipping cost per unit | `8.00` |
-| `sale_price` | Current sale price on the store | `99.00` |
-| `target_margin` | Target margin percentage | `40` (for 40%) |
+| `current_sale_price` | Current sale price on the store | `99.00` |
+| `target_margin_pct` | Target margin percentage | `40` (for 40%) |
 | `product_category` | One of: `Electronics`, `Apparel`, `Furniture`, `Toys`, `Home Goods` | `Electronics` |
-| `hs_code` | HS classification code | `8517.62` |
 | `source_country` | 2-letter ISO country code | `CN`, `VN`, `IN`, `MX` |
 
 ### Sample row
 
 ```csv
-sku,supplier_cost,shipping_cost,sale_price,target_margin,product_category,hs_code,source_country
-ELEC-SMART-001,50.00,8.00,99.00,40,Electronics,8517.62,CN
-```
+sku,supplier_cost,shipping_cost,current_sale_price,target_margin_pct,product_category,source_country
+ELEC-SMART-001,48.00,8.50,99.99,40.0,Electronics,CN
+ELEC-HEADPHONE-002,24.50,4.20,59.99,35.0,Electronics,VN
+HOME-LAMP-003,18.00,6.00,44.99,40.0,Home Goods,IN
+TOYS-BLOCK-004,10.00,2.50,29.99,45.0,Toys,VN
+APPA-JACKET-005,28.00,5.00,69.99,50.0,Apparel,CN
 
 Rows that fail validation (e.g. negative costs, unrecognized category) are skipped, and the dashboard shows exactly which rows were rejected and why — the rest of the file still loads and runs.
 
